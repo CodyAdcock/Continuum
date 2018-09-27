@@ -2,7 +2,7 @@
   "images" : [
     {
       "idiom" : "universal",
-      "filename" : "team-motivation-teamwork-together-53958.jpeg",
+      "filename" : "ios11-control-center-camera-icon-1.png",
       "scale" : "1x"
     },
     {
@@ -11,6 +11,7 @@
     },
     {
       "idiom" : "universal",
+      "filename" : "ios11-control-center-camera-icon.png",
       "scale" : "3x"
     }
   ],

@@ -20,11 +20,20 @@ class PostDetailTableViewController: UITableViewController {
     
     @IBOutlet weak var postImage: UIImageView!
     @IBOutlet weak var captionLabel: UILabel!
+    @IBOutlet weak var followButton: UIButton!
     
     
     func updateViews(){
-        postImage.image = post?.photo
-        captionLabel.text = post?.caption
+        guard let post = post else {return}
+        postImage.image = post.photo
+        captionLabel.text = post.caption
+        
+        PostController.shared.checkForSubscription(to: post) { (isSubbed) in
+            DispatchQueue.main.async {
+                let status = isSubbed ? "Unfollow" : "Follow"
+                self.followButton.setTitle(status, for: .normal)
+            }
+        }
     }
     
     override func viewDidLoad() {
@@ -88,7 +97,18 @@ class PostDetailTableViewController: UITableViewController {
         }
     }
     @IBAction func followButtonTapped(_ sender: Any) {
-        
+        guard let post = post else {return}
+        PostController.shared.toggleSubscriptionTo(commentsForPost: post) { (success, error) in
+            if let error = error{
+                print("🤬 There was an error in \(#function) ; \(error) ; \(error.localizedDescription) 🤬")
+                return
+            }
+            if success{
+                DispatchQueue.main.async {
+                    self.updateViews()
+                }
+            }
+        }
     }
     
     func presentCommentAlertController(){

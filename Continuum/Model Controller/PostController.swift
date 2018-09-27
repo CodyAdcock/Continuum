@@ -130,6 +130,89 @@ class PostController{
         }
         
     }
+    
+    func addSubscriptionTo(commentsforPost post: Post, completion: ((Bool, Error?) -> ())?){
+        let postRecordID = post.recordID
+        
+        let predicate = NSPredicate(format: "postReference = %@", postRecordID)
+        let subscription = CKQuerySubscription(recordType: "Comment", predicate: predicate, subscriptionID: post.recordID.recordName, options: .firesOnRecordUpdate)
+        let notificationInfo = CKSubscription.NotificationInfo()
+        notificationInfo.alertBody = "A post you follow has a new comment!"
+        notificationInfo.shouldSendContentAvailable = true
+        notificationInfo.desiredKeys = nil
+        subscription.notificationInfo = notificationInfo
+        
+        publicDB.save(subscription) {(_,error) in
+            if let error = error{
+                print("🤬 There was an error in \(#function) ; \(error) ; \(error.localizedDescription) 🤬")
+                completion?(false, error)
+            }else{
+                completion?(true, nil)
+            }
+        }
+    }
+    
+    func removeSubscriptionTo(commentsForPost post: Post, completion: ((Bool) -> ())?){
+        let subscripstionID = post.recordID.recordName
+        publicDB.delete(withSubscriptionID: subscripstionID) { (_, error) in
+            if let error = error{
+                print("🤬 There was an error in \(#function) ; \(error) ; \(error.localizedDescription) 🤬")
+                completion?(false)
+                return
+            }else {
+                print("subscription deleted")
+                completion?(true)
+            }
+        }
+    }
+    
+    func checkForSubscription(to post: Post, completion: ((Bool) -> ())?){
+        let subscriptionID = post.recordID.recordName
+        publicDB.fetch(withSubscriptionID: subscriptionID) { (subscription, error) in
+            if let error = error {
+                print("🤬 There was an error in \(#function) ; \(error) ; \(error.localizedDescription) 🤬")
+                completion?(false)
+                return
+            }
+            if subscription != nil{
+                completion?(true)
+            }else {
+                completion?(false)
+            }
+            
+        }
+    }
+    
+    func toggleSubscriptionTo(commentsForPost post: Post, completion: ((Bool, Error?) -> ())?){
+        checkForSubscription(to: post) { (isSubscribed) in
+            if isSubscribed{
+                self.removeSubscriptionTo(commentsForPost: post, completion: { (success) in
+                    if success{
+                        print("Successfully removed the subscription to the post with caption: \(post.caption) 🤪")
+                        completion?(true, nil)
+                    }else{
+                        print("Whoops somthing went wrong removing the subscription to the post with caption: \(post.caption) 🤮") ; completion?(true, nil)
+                        completion?(false, nil)
+                    }
+                })
+            }else {
+                self.addSubscriptionTo(commentsforPost: post, completion: { (success, error) in
+                    if let error = error {
+                        print("🤬 There was an error in \(#function) ; \(error) ; \(error.localizedDescription) 🤬")
+                        completion?(false, error)
+                        return
+                    }
+                    if success{
+                        print("Successfully added the subscription to the post with caption: \(post.caption) 🤪")
+                        completion?(true, nil)
+                    }else{
+                        print("Whoops somthing went wrong adding the subscription to the post with caption: \(post.caption) 🤮") ; completion?(true, nil)
+                        completion?(false, nil)
+                    }
+                })
+            }
+        }
+    }
 }
 
 extension UIViewController {

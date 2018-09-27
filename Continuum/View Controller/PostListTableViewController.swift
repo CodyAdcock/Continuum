@@ -18,16 +18,16 @@ class PostListTableViewController: UITableViewController, UISearchBarDelegate{
     override func viewDidLoad() {
         super.viewDidLoad()
         searchBar.delegate = self
-        
+        fetchAllPosts()
         let notificationCenter = NotificationCenter.default
         notificationCenter.addObserver(self, selector: #selector(updateViews(_:)), name: PostController.PostsChangedNotification, object: nil)
         
-        fetchAllPosts()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         DispatchQueue.main.async {
+            self.fetchAllPosts()
             self.resultsArray = PostController.shared.posts
             self.tableView.reloadData()
         }
@@ -40,6 +40,19 @@ class PostListTableViewController: UITableViewController, UISearchBarDelegate{
     func fetchAllPosts(){
         PostController.shared.fetchAllPostsFromCloudKit { (posts) in
             if posts != nil {
+                self.resultsArray = posts
+                
+                guard let posts = posts else {return}
+                for post in posts {
+                    PostController.shared.fetchComments(from: post, completion: { (success) in
+                        if success{
+                            DispatchQueue.main.async {
+                                self.tableView.reloadData()
+                            }
+                        }
+                    })
+                }
+                
                 DispatchQueue.main.async {
                     self.tableView.reloadData()
                 }

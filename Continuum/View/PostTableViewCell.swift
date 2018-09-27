@@ -15,6 +15,7 @@ class PostTableViewCell: UITableViewCell {
     @IBOutlet weak var commentCountLabel: UILabel!
     
     
+    
     var post: Post?{
         didSet{
             updateViews()
