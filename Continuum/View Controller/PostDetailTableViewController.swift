@@ -14,14 +14,17 @@ class PostDetailTableViewController: UITableViewController {
         didSet{
             loadViewIfNeeded()
             updateViews()
+            loadComments()
         }
     }
     
     @IBOutlet weak var postImage: UIImageView!
+    @IBOutlet weak var captionLabel: UILabel!
     
     
     func updateViews(){
         postImage.image = post?.photo
+        captionLabel.text = post?.caption
     }
     
     override func viewDidLoad() {
@@ -34,6 +37,17 @@ class PostDetailTableViewController: UITableViewController {
         super.viewWillAppear(animated)
         DispatchQueue.main.async {
             self.tableView.reloadData()
+        }
+    }
+    
+    func loadComments(){
+        guard let post = post else {return}
+        PostController.shared.fetchComments(from: post) { (success) in
+            if success{
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+            }
         }
     }
 

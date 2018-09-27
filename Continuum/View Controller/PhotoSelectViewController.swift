@@ -56,8 +56,6 @@ class PhotoSelectViewController: UIViewController {
         
         present(actionSheet, animated: true)
         
-        selectPhotoButton.setTitle("", for: .normal)
-        photoImageView.isHidden = false
     }
 }
 
